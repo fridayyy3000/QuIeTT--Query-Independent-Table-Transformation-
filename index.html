@@ -94,10 +94,10 @@
 
     .team-section { padding: 3rem 1.5rem; }
     .team-grid {
-      display: flex; flex-wrap: nowrap; justify-content: center;
+      display: flex; flex-wrap: wrap; justify-content: center;
       gap: 1.5rem; margin-top: 2rem;
     }
-    .team-member { text-align: center; width: 140px; }
+    .team-member { text-align: center; width: 140px; min-width: 120px; }
     .team-member img {
       width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
       border: 3px solid var(--border-color); transition: var(--transition);
@@ -142,7 +142,7 @@
     .best-score { font-weight: 700; }
 
     .findings-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 1.5rem; margin: 2rem 0;
     }
     .finding-card {
@@ -167,7 +167,7 @@
     }
 
     .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 1rem; margin: 1.5rem 0;
     }
     .stat-item {
@@ -196,9 +196,41 @@
     .model-results.active { display: block; }
     
     @media screen and (max-width: 768px) {
+      .team-grid {
+        gap: 1rem;
+      }
+      .team-member {
+        width: 120px;
+        min-width: 100px;
+      }
+      .team-member img {
+        width: 100px;
+        height: 100px;
+      }
+      .team-member .name {
+        font-size: 0.85rem;
+      }
+      .team-member .affiliation {
+        font-size: 0.75rem;
+      }
+      .findings-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
       .model-tab-btn {
         padding: 0.5rem 0.9rem;
         font-size: 0.85rem;
+      }
+      .results-table {
+        font-size: 0.75rem;
+      }
+      .results-table thead th,
+      .results-table tbody td {
+        padding: 0.4rem 0.5rem;
       }
     }
 
@@ -258,7 +290,7 @@
               <span class="eql-cntrb"><small><sup>*</sup>Equal Contribution</small></span>
             </div>
             <div class="column has-text-centered">
-              <div class="publication-links">
+              <div class="publication-links" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;">
                 <span class="link-block">
                   <a href="https://arxiv.org/abs/2602.20017" target="_blank" class="external-link button is-normal is-rounded is-dark">
                     <span class="icon"><i class="ai ai-arxiv"></i></span>
