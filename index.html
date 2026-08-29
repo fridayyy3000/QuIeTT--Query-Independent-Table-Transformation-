@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="title" content="QuIeTT: Query-Independent Table Transformation for Robust Reasoning">
+  <meta name="description" content="QuIeTT is a transform-first, query-later framework that converts raw tables into SQL-ready canonical representations before any evaluation query is observed, improving table QA across benchmarks and models.">
+  <meta name="keywords" content="table QA, table transformation, NLP, table reasoning, SQL, canonical representation, EMNLP 2026, structured data">
+  <meta name="author" content="Gaurav Najpande, Tampu Ravi Kumar, Manan Roy Choudhury, Neha Valeti, Yanjie Fu, Vivek Gupta">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="CoRAL Lab, Arizona State University">
+  <meta property="og:title" content="QuIeTT: Query-Independent Table Transformation for Robust Reasoning">
+  <meta property="og:description" content="A transform-first framework that converts raw tables into SQL-ready canonical representations, improving table QA by 4-8 F1 points across benchmarks.">
+  <meta property="og:url" content="https://fridayyy3000.github.io/QuIeTT/">
+  <meta property="og:image" content="https://fridayyy3000.github.io/QuIeTT/static/images/figures/teaser.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="QuIeTT: Query-Independent Table Transformation for Robust Reasoning">
+  <meta name="twitter:description" content="A transform-first framework for robust table QA. EMNLP 2026 Findings.">
+  <meta name="twitter:image" content="https://fridayyy3000.github.io/QuIeTT/static/images/figures/teaser.png">
+
+  <meta name="citation_title" content="QuIeTT: Query-Independent Table Transformation for Robust Reasoning">
+  <meta name="citation_author" content="Najpande, Gaurav">
+  <meta name="citation_author" content="Kumar, Tampu Ravi">
+  <meta name="citation_author" content="Choudhury, Manan Roy">
+  <meta name="citation_author" content="Valeti, Neha">
+  <meta name="citation_author" content="Fu, Yanjie">
+  <meta name="citation_author" content="Gupta, Vivek">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_conference_title" content="Findings of the Association for Computational Linguistics: EMNLP 2026">
+  <meta name="citation_arxiv_id" content="2602.20017">
+  
+  <meta name="theme-color" content="#1e3a5f">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+  <title>QuIeTT: Query-Independent Table Transformation for Robust Reasoning</title>
+  
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  </noscript>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "QuIeTT: Query-Independent Table Transformation for Robust Reasoning",
+    "author": [
+      {"@type": "Person", "name": "Gaurav Najpande", "affiliation": {"@type": "Organization", "name": "Arizona State University"}},
+      {"@type": "Person", "name": "Tampu Ravi Kumar", "affiliation": {"@type": "Organization", "name": "Arizona State University"}},
+      {"@type": "Person", "name": "Manan Roy Choudhury", "affiliation": {"@type": "Organization", "name": "Arizona State University"}},
+      {"@type": "Person", "name": "Neha Valeti", "affiliation": {"@type": "Organization", "name": "Arizona State University"}},
+      {"@type": "Person", "name": "Yanjie Fu", "affiliation": {"@type": "Organization", "name": "Arizona State University"}},
+      {"@type": "Person", "name": "Vivek Gupta", "affiliation": {"@type": "Organization", "name": "Arizona State University"}}
+    ],
+    "datePublished": "2026",
+    "publisher": {"@type": "Organization", "name": "Association for Computational Linguistics"},
+    "url": "https://fridayyy3000.github.io/QuIeTT/",
+    "isAccessibleForFree": true
+  }
+  </script>
+
+  <style>
+    :root {
+      --primary-color: #1e3a5f;
+      --primary-hover: #152d4a;
+      --accent-color: #3b6fa0;
+      --gradient-accent: linear-gradient(135deg, #3b6fa0 0%, #1e3a5f 100%);
+      --text-primary: #1a1a2e;
+      --text-secondary: #4a4a6a;
+      --text-light: #8888a0;
+      --background-secondary: #f5f6fa;
+      --background-accent: #eef1f7;
+      --border-color: #d8dce6;
+    }
+
+    .team-section { padding: 3rem 1.5rem; }
+    .team-grid {
+      display: flex; flex-wrap: nowrap; justify-content: center;
+      gap: 1.5rem; margin-top: 2rem;
+    }
+    .team-member { text-align: center; width: 140px; }
+    .team-member img {
+      width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--border-color); transition: var(--transition);
+      box-shadow: var(--shadow-md);
+    }
+    .team-member img:hover {
+      border-color: var(--primary-color); transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .team-member .name { margin-top: 0.75rem; font-weight: 600; font-size: 0.95rem; }
+    .team-member .name a { color: var(--primary-color); text-decoration: none; }
+    .team-member .name a:hover { color: var(--primary-hover); }
+    .team-member .affiliation { font-size: 0.8rem; color: var(--text-secondary); }
+    .team-member .equal-contrib { font-size: 0.7rem; color: var(--text-light); font-style: italic; }
+
+    .results-table-container {
+      overflow-x: auto; margin: 1.5rem 0; border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md); border: 1px solid var(--border-color);
+    }
+    .results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; white-space: nowrap; }
+    .results-table thead th {
+      background: var(--text-primary); color: white; padding: 0.6rem 0.75rem;
+      text-align: center; font-weight: 600; position: sticky; top: 0;
+    }
+    .results-table thead th.subheader { background: #2d2d4e; font-size: 0.78rem; }
+    .results-table tbody td {
+      padding: 0.5rem 0.75rem; text-align: center; border-bottom: 1px solid var(--border-color);
+    }
+    .results-table tbody tr:hover { background: var(--background-accent); }
+    .results-table tbody td.method-name {
+      text-align: left; font-weight: 600; position: sticky; left: 0;
+      background: white; z-index: 1;
+    }
+    .results-table tbody tr:hover td.method-name { background: var(--background-accent); }
+    .results-table .highlight-row td { background: #e8edf5; font-weight: 600; }
+    .results-table .highlight-row td.method-name { background: #e8edf5; color: var(--primary-color); }
+    .results-table .category-label td {
+      background: var(--background-secondary); font-weight: 700; font-size: 0.78rem;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);
+      text-align: left; padding: 0.4rem 0.75rem;
+    }
+    .best-score { font-weight: 700; }
+
+    .findings-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem; margin: 2rem 0;
+    }
+    .finding-card {
+      background: var(--background-primary); border: 1px solid var(--border-color);
+      border-radius: var(--border-radius); padding: 1.5rem;
+      box-shadow: var(--shadow-sm); transition: var(--transition);
+      border-left: 4px solid var(--primary-color);
+    }
+    .finding-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .finding-card .number { font-size: 2rem; font-weight: 800; color: var(--primary-color); line-height: 1; }
+    .finding-card .label { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+    .figure-caption {
+      font-size: 0.9rem; color: var(--text-secondary); text-align: center;
+      margin-top: 0.5rem; font-style: italic; line-height: 1.5;
+    }
+
+    .venue-badge {
+      display: inline-block; background: linear-gradient(135deg, #e8edf5, #dce3f0);
+      color: var(--primary-color); padding: 0.4rem 1rem; border-radius: var(--border-radius);
+      font-weight: 700; font-size: 0.95rem; border: 1px solid #c5cfe0; margin-top: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin: 1.5rem 0;
+    }
+    .stat-item {
+      text-align: center; padding: 1.25rem; background: var(--background-primary);
+      border-radius: var(--border-radius); border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-item .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary-color); }
+    .stat-item .stat-label { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+    .model-tabs {
+      display: flex; justify-content: center; gap: 0.5rem; margin: 2rem 0 1.5rem;
+      flex-wrap: wrap;
+    }
+    .model-tab-btn {
+      background: white; color: #1e3a5f; border: 2px solid #1e3a5f;
+      padding: 0.6rem 1.25rem; border-radius: 8px; cursor: pointer;
+      font-weight: 600; font-size: 0.9rem; transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
+    .model-tab-btn:hover { background: #f5f6fa; transform: translateY(-1px); }
+    .model-tab-btn.active {
+      background: #1e3a5f; color: white; box-shadow: 0 4px 6px rgba(30, 58, 95, 0.2);
+    }
+    .model-results { display: none; }
+    .model-results.active { display: block; }
+    
+    @media screen and (max-width: 768px) {
+      .model-tab-btn {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    .section-image {
+      border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg);
+      transition: var(--transition); max-width: 100%;
+    }
+    .section-image:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+    
+    .teaser-image {
+      border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg);
+      transition: var(--transition);
+      width: auto; height: auto;
+      max-width: 900px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+    .teaser-image:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+    
+    @media screen and (max-width: 768px) {
+      .teaser-image {
+        max-width: 100%;
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title"><span class="acronym-letter">QuIeTT:</span> <span class="acronym-letter">Q</span>uery <span class="acronym-letter">I</span>ndependent <span class="acronym-letter">T</span>able <span class="acronym-letter">T</span>ransformation for Robust Reasoning</h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block"><a href="https://fridayyy3000.github.io/gaurav.najpande/" target="_blank">Gaurav Najpande</a>,</span>
+              <span class="author-block"><a href="https://www.linkedin.com/in/tampuravi/" target="_blank">Tampu Ravi Kumar</a><sup>*</sup>,</span>
+              <span class="author-block"><a href="https://www.linkedin.com/in/manan-roy-choudhury-2b2093208/" target="_blank">Manan Roy Choudhury</a><sup>*</sup>,</span>
+              <span class="author-block"><a href="https://www.linkedin.com/in/nehavaleti/" target="_blank">Neha Valeti</a><sup>*</sup>,</span>
+              <span class="author-block"><a href="https://faculty.engineering.asu.edu/yanjiefu/" target="_blank">Yanjie Fu</a>,</span>
+              <span class="author-block"><a href="https://vgupta123.github.io/" target="_blank">Vivek Gupta</a></span>
+            </div>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">Arizona State University</span>
+              <br>
+              <span class="venue-badge">EMNLP 2026 Findings</span>
+              <br>
+              <span class="eql-cntrb"><small><sup>*</sup>Equal Contribution</small></span>
+            </div>
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2602.20017" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="ai ai-arxiv"></i></span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://github.com/fridayyy3000/QuIeTT" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Teaser -->
+  <section class="hero teaser">
+    <div class="container is-widescreen">
+      <div class="hero-body has-text-centered">
+        <img src="static/images/figures/teaser.png" alt="QuIeTT: Transform First, Query Later" class="teaser-image" loading="lazy">
+        <p class="figure-caption">
+          QuIeTT transforms a raw table into a single SQL-ready canonical representation before any evaluation query is observed. The transformed table is reused across all queries without modification.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Real-world tables often contain schema inconsistencies, heterogeneous value formats, and implicit relational structures that degrade table reasoning and question answering. Existing approaches address these issues at query time, repeating normalization and restructuring for every new question and producing representations that do not generalize to unseen queries. We introduce <strong>QuIeTT</strong>, a <em>transform-first, query-later</em> framework that converts each raw table into a single SQL-ready canonical representation before any evaluation query is observed, under three constraints: no evaluation query access, information preservation, and single-table reuse. QuIeTT operates through a three-stage pipeline: issue probing, where synthetic queries surface structural deficiencies such as ambiguous schemas and heterogeneous formats; plan generation; and structured execution. Experiments on four benchmarks across five model families show consistent improvements over strong baselines in both direct prompting and agentic reasoning paradigms, with particularly strong gains on a manually annotated challenge set of structurally diverse unseen questions.
+            </p>
+          </div>
+          <div class="findings-grid">
+            <div class="finding-card">
+              <div class="number">4-8</div>
+              <div class="label">Accuracy improvement over best baselines</div>
+            </div>
+            <div class="finding-card">
+              <div class="number">5</div>
+              <div class="label">Model families evaluated</div>
+            </div>
+            <div class="finding-card">
+              <div class="number">4</div>
+              <div class="label">Table QA benchmarks</div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Framework -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column">
+          <h2 class="title is-3">Framework</h2>
+          <div class="content has-text-justified">
+            <p>
+              QuIeTT operates through a three-stage pipeline. <strong>Stage 1: Issue Probing</strong> generates synthetic queries from the raw table to expose structural issues such as inconsistent formats, implicit relations, missing derived fields, and undecomposed attributes. <strong>Stage 2: Transformation</strong> uses detected issues to guide a transformation plan that applies normalization, parsing, restructuring, and derived column creation, executed via code to materialize a canonical, SQL-ready table. <strong>Stage 3: QA</strong> reuses the transformed table across all downstream queries, enabling accurate and consistent reasoning without modifying the underlying model or prompting strategy.
+            </p>
+          </div>
+          <img src="static/images/figures/pipeline_framework-1.png" alt="QuIeTT three-stage pipeline" class="section-image" loading="lazy">
+          <p class="figure-caption">
+            QuIeTT framework for robust table reasoning. Synthetic queries probe structural issues, detected issues guide a transformation plan, and the canonical table is reused across all downstream queries.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Challenge Set -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Challenge Set</h2>
+          <div class="content has-text-justified">
+            <p>
+              To evaluate generalization under increased structural complexity, we construct a challenge set from WikiTQ and NQ-Table, two datasets whose structural issues, heterogeneous formats, implicit relations, and irregular schemas are latent and unlabeled. For each table, we generate structurally challenging question-answer pairs targeting patterns that hinder reliable answering without transformation. All question-answer pairs are manually verified by three independent NLP annotators against the raw source table, achieving high inter-annotator agreement (Fleiss' κ = 0.93).
+            </p>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item"><div class="stat-value">529</div><div class="stat-label">Tables</div></div>
+            <div class="stat-item"><div class="stat-value">2,500</div><div class="stat-label">Questions</div></div>
+            <div class="stat-item"><div class="stat-value">0.93</div><div class="stat-label">Fleiss' κ</div></div>
+            <div class="stat-item"><div class="stat-value">3</div><div class="stat-label">Expert Annotators</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column">
+          <h2 class="title is-3 has-text-centered">Results</h2>
+          <div class="content has-text-justified">
+            <p>
+              QuIeTT consistently outperforms all baselines across four benchmarks, five model families, and two reasoning paradigms (direct prompting and agentic). Below are detailed results for all evaluated models: Gemini-2.5-flash, GPT-OSS-120B, DeepSeek V3.1,  Qwen3- 383
+80B, and Gemini-2.0-flash. Select a model tab to view its performance across all benchmarks.
+            </p>
+          </div>
+
+          <h3 class="title is-5 has-text-centered" style="margin-top:2rem;">Main Results</h3>
+          
+          <div class="model-tabs">
+            <button class="model-tab-btn active" onclick="switchModelTab('gemini25')">Gemini 2.5</button>
+            <button class="model-tab-btn" onclick="switchModelTab('gptoss')">GPT-OSS</button>
+            <button class="model-tab-btn" onclick="switchModelTab('deepseek')">DeepSeek V3.1</button>
+            <button class="model-tab-btn" onclick="switchModelTab('qwen')">Qwen 3</button>
+            <button class="model-tab-btn" onclick="switchModelTab('gemini20')">Gemini 2.0</button>
+          </div>
+
+          <!-- Gemini 2.5 Results -->
+          <div id="gemini25-results" class="model-results active">
+            <div class="results-table-container">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th>
+                    <th colspan="2">WikiTQ</th><th colspan="2">NQ-Table</th>
+                    <th colspan="2">SequentialQA</th><th colspan="2">HiTab</th>
+                  </tr>
+                  <tr>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="category-label"><td colspan="9">Direct Prompting</td></tr>
+                  <tr><td class="method-name">CoT</td><td>74.31</td><td>72.85</td><td>71.22</td><td>66.36</td><td>61.98</td><td>57.21</td><td>75.21</td><td>71.00</td></tr>
+                  <tr><td class="method-name">CoT + SQL</td><td>54.66</td><td>52.49</td><td>36.64</td><td>30.96</td><td>58.23</td><td>53.37</td><td>69.01</td><td>67.00</td></tr>
+                  <tr><td class="method-name">NormTab</td><td>58.70</td><td>56.19</td><td>53.00</td><td>51.05</td><td>50.00</td><td>49.92</td><td>56.81</td><td>54.60</td></tr>
+                  <tr><td class="method-name">E5</td><td>74.35</td><td>70.30</td><td>55.90</td><td>52.92</td><td>31.64</td><td>29.81</td><td>78.89</td><td>75.10</td></tr>
+                  <tr><td class="method-name">EEDP</td><td>65.00</td><td>51.10</td><td>72.79</td><td>70.17</td><td>60.30</td><td>57.13</td><td>77.60</td><td>73.00</td></tr>
+                  <tr><td class="method-name">Binder</td><td>51.89</td><td>49.69</td><td>67.24</td><td>59.59</td><td>22.49</td><td>19.84</td><td>59.03</td><td>56.30</td></tr>
+                  <tr><td class="method-name">TableSQLify</td><td>53.02</td><td>49.50</td><td>34.78</td><td>27.77</td><td>26.78</td><td>24.44</td><td>69.92</td><td>67.90</td></tr>
+                  <tr><td class="method-name">TableReasoner</td><td>54.32</td><td>50.05</td><td>64.71</td><td>57.58</td><td>42.51</td><td>39.15</td><td>61.68</td><td>59.54</td></tr>
+                  <tr class="category-label"><td colspan="9">Agentic</td></tr>
+                  <tr><td class="method-name">Chain-of-Table</td><td>74.30</td><td>73.20</td><td>69.56</td><td>67.45</td><td>22.27</td><td>20.93</td><td>70.12</td><td>65.80</td></tr>
+                  <tr><td class="method-name">POT</td><td>60.21</td><td>58.39</td><td>67.70</td><td>65.69</td><td>63.52</td><td>54.58</td><td>69.12</td><td>65.40</td></tr>
+                  <tr><td class="method-name">GraphOTTER</td><td>49.29</td><td>42.75</td><td>61.79</td><td>56.09</td><td>42.76</td><td>43.98</td><td>81.05</td><td>79.71</td></tr>
+                  <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">79.80</td><td class="best-score">78.56</td><td class="best-score">80.10</td><td class="best-score">76.19</td><td class="best-score">72.32</td><td class="best-score">66.69</td><td class="best-score">84.41</td><td class="best-score">83.10</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- GPT-OSS Results -->
+          <div id="gptoss-results" class="model-results">
+            <div class="results-table-container">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th>
+                    <th colspan="2">WikiTQ</th><th colspan="2">NQ-Table</th>
+                    <th colspan="2">SequentialQA</th><th colspan="2">HiTab</th>
+                  </tr>
+                  <tr>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="category-label"><td colspan="9">Direct Prompting</td></tr>
+                  <tr><td class="method-name">CoT</td><td>69.40</td><td>66.56</td><td>66.60</td><td>63.54</td><td>60.26</td><td>58.29</td><td>53.90</td><td>50.80</td></tr>
+                  <tr><td class="method-name">CoT + SQL</td><td>43.00</td><td>42.29</td><td>47.90</td><td>33.95</td><td>55.20</td><td>49.60</td><td>31.90</td><td>30.70</td></tr>
+                  <tr><td class="method-name">NormTab</td><td>65.91</td><td>62.61</td><td>50.30</td><td>48.34</td><td>48.60</td><td>43.10</td><td>54.67</td><td>52.00</td></tr>
+                  <tr><td class="method-name">E5</td><td>56.90</td><td>52.15</td><td>54.00</td><td>51.76</td><td>43.80</td><td>40.46</td><td>77.47</td><td>75.00</td></tr>
+                  <tr><td class="method-name">EEDP</td><td>60.10</td><td>59.54</td><td>71.80</td><td>58.28</td><td>54.90</td><td>50.31</td><td>55.48</td><td>52.40</td></tr>
+                  <tr><td class="method-name">Binder</td><td>61.50</td><td>58.47</td><td>66.50</td><td>64.30</td><td>21.50</td><td>17.23</td><td>58.55</td><td>55.03</td></tr>
+                  <tr><td class="method-name">TableSQLify</td><td>73.90</td><td>68.98</td><td>46.99</td><td>41.52</td><td>26.73</td><td>23.87</td><td>53.00</td><td>40.41</td></tr>
+                  <tr><td class="method-name">TableReasoner</td><td>69.79</td><td>64.64</td><td>62.70</td><td>59.45</td><td>66.22</td><td>63.37</td><td>56.81</td><td>52.78</td></tr>
+                  <tr class="category-label"><td colspan="9">Agentic</td></tr>
+                  <tr><td class="method-name">Chain-of-Table</td><td>62.11</td><td>57.53</td><td>60.21</td><td>53.47</td><td>23.20</td><td>19.14</td><td>65.60</td><td>53.80</td></tr>
+                  <tr><td class="method-name">POT</td><td>69.90</td><td>68.16</td><td>57.60</td><td>50.08</td><td>44.50</td><td>41.84</td><td>43.50</td><td>38.23</td></tr>
+                  <tr><td class="method-name">GraphOTTER</td><td>57.50</td><td>52.50</td><td>55.88</td><td>48.47</td><td>44.26</td><td>42.26</td><td>78.60</td><td>74.61</td></tr>
+                  <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">76.21</td><td class="best-score">73.23</td><td class="best-score">72.75</td><td class="best-score">68.50</td><td class="best-score">73.00</td><td class="best-score">64.58</td><td class="best-score">79.50</td><td class="best-score">78.70</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DeepSeek V3.1 Results -->
+          <div id="deepseek-results" class="model-results">
+            <div class="results-table-container">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th>
+                    <th colspan="2">WikiTQ</th><th colspan="2">NQ-Table</th>
+                    <th colspan="2">SequentialQA</th><th colspan="2">HiTab</th>
+                  </tr>
+                  <tr>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="category-label"><td colspan="9">Direct Prompting</td></tr>
+                  <tr><td class="method-name">CoT</td><td>60.92</td><td>59.62</td><td>63.60</td><td>59.12</td><td>59.50</td><td>50.36</td><td>71.13</td><td>68.00</td></tr>
+                  <tr><td class="method-name">CoT + SQL</td><td>51.21</td><td>47.39</td><td>34.21</td><td>29.28</td><td>56.30</td><td>55.12</td><td>65.45</td><td>61.00</td></tr>
+                  <tr><td class="method-name">NormTab</td><td>53.19</td><td>51.33</td><td>55.40</td><td>52.34</td><td>45.57</td><td>43.24</td><td>43.35</td><td>42.27</td></tr>
+                  <tr><td class="method-name">E5</td><td>73.00</td><td>68.20</td><td>54.55</td><td>49.45</td><td>42.75</td><td>35.11</td><td>80.50</td><td>76.80</td></tr>
+                  <tr><td class="method-name">EEDP</td><td>62.20</td><td>52.40</td><td>72.29</td><td>69.42</td><td>60.25</td><td>52.79</td><td>74.18</td><td>69.60</td></tr>
+                  <tr><td class="method-name">Binder</td><td>50.62</td><td>47.22</td><td>67.44</td><td>61.20</td><td>20.19</td><td>16.63</td><td>58.66</td><td>55.90</td></tr>
+                  <tr><td class="method-name">TableSQLify</td><td>73.00</td><td>71.45</td><td>56.94</td><td>48.03</td><td>30.01</td><td>28.58</td><td>67.62</td><td>63.40</td></tr>
+                  <tr><td class="method-name">TableReasoner</td><td>47.63</td><td>41.38</td><td>33.33</td><td>32.36</td><td>56.89</td><td>50.36</td><td>48.63</td><td>46.42</td></tr>
+                  <tr class="category-label"><td colspan="9">Agentic</td></tr>
+                  <tr><td class="method-name">Chain-of-Table</td><td>63.67</td><td>61.29</td><td>70.10</td><td>61.23</td><td>44.53</td><td>41.66</td><td>75.55</td><td>70.80</td></tr>
+                  <tr><td class="method-name">POT</td><td>48.39</td><td>45.72</td><td>65.33</td><td>58.68</td><td>59.79</td><td>56.47</td><td>56.55</td><td>53.30</td></tr>
+                  <tr><td class="method-name">GraphOTTER</td><td>34.80</td><td>30.30</td><td>35.29</td><td>32.63</td><td>44.05</td><td>39.73</td><td>61.30</td><td>58.82</td></tr>
+                  <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">74.56</td><td class="best-score">72.21</td><td class="best-score">79.20</td><td class="best-score">72.29</td><td class="best-score">66.15</td><td class="best-score">59.57</td><td class="best-score">81.30</td><td class="best-score">79.40</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Qwen 3 Results -->
+          <div id="qwen-results" class="model-results">
+            <div class="results-table-container">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th>
+                    <th colspan="2">WikiTQ</th><th colspan="2">NQ-Table</th>
+                    <th colspan="2">SequentialQA</th><th colspan="2">HiTab</th>
+                  </tr>
+                  <tr>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="category-label"><td colspan="9">Direct Prompting</td></tr>
+                  <tr><td class="method-name">CoT</td><td>58.95</td><td>57.55</td><td>61.34</td><td>59.91</td><td>57.12</td><td>54.03</td><td>72.97</td><td>69.00</td></tr>
+                  <tr><td class="method-name">CoT + SQL</td><td>51.55</td><td>48.95</td><td>34.54</td><td>33.36</td><td>59.64</td><td>58.11</td><td>56.23</td><td>51.00</td></tr>
+                  <tr><td class="method-name">NormTab</td><td>51.12</td><td>47.72</td><td>46.80</td><td>41.92</td><td>48.68</td><td>46.69</td><td>43.30</td><td>42.78</td></tr>
+                  <tr><td class="method-name">E5</td><td>62.30</td><td>57.30</td><td>53.16</td><td>50.23</td><td>42.69</td><td>33.97</td><td>72.21</td><td>71.20</td></tr>
+                  <tr><td class="method-name">EEDP</td><td>62.40</td><td>53.70</td><td>62.21</td><td>61.31</td><td>55.90</td><td>53.18</td><td>71.27</td><td>67.70</td></tr>
+                  <tr><td class="method-name">Binder</td><td>61.68</td><td>58.48</td><td>61.56</td><td>59.38</td><td>20.54</td><td>20.34</td><td>56.29</td><td>53.50</td></tr>
+                  <tr><td class="method-name">TableSQLify</td><td>48.40</td><td>45.45</td><td>51.34</td><td>47.67</td><td>29.18</td><td>27.27</td><td>62.30</td><td>60.40</td></tr>
+                  <tr><td class="method-name">TableReasoner</td><td>62.49</td><td>61.53</td><td>63.77</td><td>60.11</td><td>60.59</td><td>58.99</td><td>52.95</td><td>49.18</td></tr>
+                  <tr class="category-label"><td colspan="9">Agentic</td></tr>
+                  <tr><td class="method-name">Chain-of-Table</td><td>61.39</td><td>59.17</td><td>64.33</td><td>61.20</td><td>44.28</td><td>38.88</td><td>76.18</td><td>71.80</td></tr>
+                  <tr><td class="method-name">POT</td><td>46.56</td><td>44.33</td><td>62.10</td><td>59.68</td><td>59.28</td><td>53.12</td><td>32.30</td><td>30.70</td></tr>
+                  <tr><td class="method-name">GraphOTTER</td><td>50.84</td><td>46.94</td><td>55.80</td><td>51.41</td><td>42.93</td><td>40.53</td><td>77.05</td><td>73.63</td></tr>
+                  <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">64.20</td><td class="best-score">60.96</td><td class="best-score">72.60</td><td class="best-score">65.23</td><td class="best-score">62.54</td><td class="best-score">58.39</td><td class="best-score">81.22</td><td class="best-score">81.00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Gemini 2.0 Results -->
+          <div id="gemini20-results" class="model-results">
+            <div class="results-table-container">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th>
+                    <th colspan="2">WikiTQ</th><th colspan="2">NQ-Table</th>
+                    <th colspan="2">SequentialQA</th><th colspan="2">HiTab</th>
+                  </tr>
+                  <tr>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                    <th class="subheader">F1</th><th class="subheader">EM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="category-label"><td colspan="9">Direct Prompting</td></tr>
+                  <tr><td class="method-name">CoT</td><td>61.76</td><td>60.67</td><td>68.70</td><td>67.50</td><td>62.33</td><td>59.87</td><td>76.11</td><td>72.00</td></tr>
+                  <tr><td class="method-name">CoT + SQL</td><td>44.43</td><td>44.02</td><td>43.29</td><td>41.45</td><td>50.06</td><td>46.83</td><td>52.10</td><td>50.00</td></tr>
+                  <tr><td class="method-name">NormTab</td><td>55.95</td><td>52.42</td><td>51.80</td><td>49.76</td><td>47.95</td><td>42.14</td><td>56.24</td><td>53.60</td></tr>
+                  <tr><td class="method-name">E5</td><td>66.60</td><td>65.90</td><td>48.40</td><td>46.34</td><td>42.75</td><td>38.18</td><td>75.83</td><td>71.40</td></tr>
+                  <tr><td class="method-name">EEDP</td><td>61.80</td><td>59.30</td><td>70.31</td><td>63.81</td><td>61.10</td><td>54.27</td><td>76.53</td><td>72.00</td></tr>
+                  <tr><td class="method-name">Binder</td><td>60.81</td><td>57.88</td><td>62.25</td><td>54.90</td><td>21.82</td><td>20.91</td><td>55.62</td><td>53.00</td></tr>
+                  <tr><td class="method-name">TableSQLify</td><td>64.50</td><td>61.91</td><td>47.51</td><td>38.10</td><td>10.71</td><td>9.74</td><td>64.20</td><td>60.10</td></tr>
+                  <tr><td class="method-name">TableReasoner</td><td>60.19</td><td>57.89</td><td>56.52</td><td>53.45</td><td>59.52</td><td>51.23</td><td>60.84</td><td>54.31</td></tr>
+                  <tr class="category-label"><td colspan="9">Agentic</td></tr>
+                  <tr><td class="method-name">Chain-of-Table</td><td>63.27</td><td>61.58</td><td>62.30</td><td>59.28</td><td>41.24</td><td>39.79</td><td>69.43</td><td>65.10</td></tr>
+                  <tr><td class="method-name">POT</td><td>52.11</td><td>50.32</td><td>61.70</td><td>52.07</td><td>56.10</td><td>52.43</td><td>64.00</td><td>61.00</td></tr>
+                  <tr><td class="method-name">GraphOTTER</td><td>55.39</td><td>51.16</td><td>69.29</td><td>65.69</td><td>50.36</td><td>49.35</td><td>64.64</td><td>61.62</td></tr>
+                  <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">67.60</td><td class="best-score">66.56</td><td class="best-score">73.25</td><td class="best-score">68.75</td><td class="best-score">70.11</td><td class="best-score">65.69</td><td class="best-score">77.82</td><td class="best-score">76.50</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <h3 class="title is-5 has-text-centered" style="margin-top:2.5rem;">Challenge Set Results</h3>
+          <div class="results-table-container">
+            <table class="results-table">
+              <thead>
+                <tr><th rowspan="2">Dataset</th><th rowspan="2">Method</th><th colspan="2">Gemini 2.5</th><th colspan="2">GPT-OSS</th></tr>
+                <tr><th class="subheader">F1</th><th class="subheader">EM</th><th class="subheader">F1</th><th class="subheader">EM</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="method-name" rowspan="5" style="vertical-align:middle;font-weight:700;">WikiTQ</td><td>CoT</td><td>67.11</td><td>65.50</td><td>63.58</td><td>60.36</td></tr>
+                <tr><td>NormTab</td><td>62.28</td><td>61.90</td><td>61.71</td><td>57.23</td></tr>
+                <tr><td>EEDP</td><td>67.60</td><td>66.34</td><td>65.12</td><td>61.86</td></tr>
+                <tr><td>Binder</td><td>65.56</td><td>63.39</td><td>65.12</td><td>64.48</td></tr>
+                <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">74.41</td><td class="best-score">71.37</td><td class="best-score">70.06</td><td class="best-score">68.59</td></tr>
+                <tr><td class="method-name" rowspan="5" style="vertical-align:middle;font-weight:700;">NQ-Table</td><td>CoT</td><td>65.63</td><td>63.35</td><td>61.38</td><td>58.49</td></tr>
+                <tr><td>NormTab</td><td>66.84</td><td>66.12</td><td>65.68</td><td>64.23</td></tr>
+                <tr><td>EEDP</td><td>71.94</td><td>68.50</td><td>67.18</td><td>63.87</td></tr>
+                <tr><td>Binder</td><td>72.28</td><td>67.22</td><td>68.33</td><td>67.30</td></tr>
+                <tr class="highlight-row"><td class="method-name">QuIeTT</td><td class="best-score">77.16</td><td class="best-score">76.50</td><td class="best-score">71.19</td><td class="best-score">70.66</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="has-text-centered" style="margin-top: 2.5rem;">
+            <img src="static/images/figures/table_level_changes.png" alt="Table-level performance changes" class="section-image" style="max-width: 650px;" loading="lazy">
+            <p class="figure-caption">
+              <strong>Table-level performance outcomes.</strong> QuIeTT improves 60% of web tables and 57% of hierarchical tables, with only 7-10% degradation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="section hero is-light team-section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Team</h2>
+      <div class="team-grid">
+        <div class="team-member">
+          <img src="static/images/authors/gaurav.jpg" alt="Gaurav Najpande">
+          <div class="name"><a href="https://fridayyy3000.github.io/gaurav.najpande/" target="_blank">Gaurav Najpande</a></div>
+          <div class="affiliation">ASU</div>
+        </div>
+        <div class="team-member">
+          <img src="static/images/authors/tampu.jpg" alt="Tampu Ravi Kumar">
+          <div class="name"><a href="https://www.linkedin.com/in/tampuravi/" target="_blank">Tampu Ravi Kumar</a></div>
+          <div class="affiliation">ASU</div>
+          <div class="equal-contrib">*Equal contribution</div>
+        </div>
+        <div class="team-member">
+          <img src="static/images/authors/manan.jpg" alt="Manan Roy Choudhury">
+          <div class="name"><a href="https://www.linkedin.com/in/manan-roy-choudhury-2b2093208/" target="_blank">Manan Roy Choudhury</a></div>
+          <div class="affiliation">ASU</div>
+          <div class="equal-contrib">*Equal contribution</div>
+        </div>
+        <div class="team-member">
+          <img src="static/images/authors/neha.jpg" alt="Neha Valeti">
+          <div class="name"><a href="https://www.linkedin.com/in/nehavaleti/" target="_blank">Neha Valeti</a></div>
+          <div class="affiliation">ASU</div>
+          <div class="equal-contrib">*Equal contribution</div>
+        </div>
+        <div class="team-member">
+          <img src="static/images/authors/yanjie.jpg" alt="Yanjie Fu">
+          <div class="name"><a href="https://faculty.engineering.asu.edu/yanjiefu/" target="_blank">Yanjie Fu</a></div>
+          <div class="affiliation">ASU</div>
+        </div>
+        <div class="team-member">
+          <img src="static/images/authors/vivek.jpg" alt="Vivek Gupta">
+          <div class="name"><a href="https://vgupta123.github.io/" target="_blank">Vivek Gupta</a></div>
+          <div class="affiliation">ASU</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BibTeX -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <div class="bibtex-header">
+        <h2 class="title">BibTeX</h2>
+        <button class="copy-bibtex-btn" onclick="copyBibTeX()" title="Copy BibTeX to clipboard">
+          <i class="fas fa-copy"></i>
+          <span class="copy-text">Copy</span>
+        </button>
+      </div>
+      <pre id="bibtex-code"><code>@inproceedings{najpande2026quiett,
+  title={QuIeTT: Query-Independent Table Transformation for Robust Reasoning},
+  author={Najpande, Gaurav and Kumar, Tampu Ravi and Choudhury, Manan Roy and Valeti, Neha and Fu, Yanjie and Gupta, Vivek},
+  booktitle={Findings of the Association for Computational Linguistics: EMNLP 2026},
+  year={2026},
+  url={https://arxiv.org/abs/2602.20017}
+}</code></pre>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content has-text-centered">
+            <p>
+              This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+              This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function switchModelTab(modelId) {
+      // Hide all result tables
+      const allResults = document.querySelectorAll('.model-results');
+      allResults.forEach(result => result.classList.remove('active'));
+      
+      // Deactivate all tabs
+      const allTabs = document.querySelectorAll('.model-tab-btn');
+      allTabs.forEach(tab => tab.classList.remove('active'));
+      
+      // Show selected result table
+      document.getElementById(modelId + '-results').classList.add('active');
+      
+      // Activate clicked tab
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
